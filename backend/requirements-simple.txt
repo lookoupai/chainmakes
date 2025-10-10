@@ -1,0 +1,28 @@
+# ChainMakes Trading Bot - Simplified Dependencies
+
+# Web Framework
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+python-multipart>=0.0.6
+
+# Database (SQLite + Async)
+sqlalchemy>=2.0.0
+aiosqlite>=0.19.0
+alembic>=1.12.0
+
+# Data Validation
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+email-validator>=2.0.0
+
+# Security & Auth
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-dotenv>=1.0.0
+cryptography>=41.0.0
+
+# Exchange API
+ccxt==3.1.60
+
+# Utilities
+python-dateutil>=2.8.0

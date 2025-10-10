@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>认证测试</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>ChainMakes 认证测试</h1>
+    
+    <div>
+        <h2>1. 登录测试</h2>
+        <button onclick="testLogin()">测试登录</button>
+        <pre id="login-result"></pre>
+    </div>
+    
+    <div>
+        <h2>2. Cookie检查</h2>
+        <button onclick="checkCookie()">检查Cookie</button>
+        <pre id="cookie-result"></pre>
+    </div>
+    
+    <div>
+        <h2>3. 获取用户信息</h2>
+        <button onclick="testGetUser()">测试获取用户</button>
+        <pre id="user-result"></pre>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api/v1';
+        let savedToken = null;
+
+        async function testLogin() {
+            const result = document.getElementById('login-result');
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                
+                const data = await response.json();
+                result.textContent = JSON.stringify(data, null, 2);
+                
+                if (data.access_token) {
+                    savedToken = data.access_token;
+                    // 保存到Cookie
+                    document.cookie = `v3-admin-vite-token-key=${savedToken}; path=/`;
+                    result.textContent += '\n\n✅ Token已保存到Cookie';
+                }
+            } catch (error) {
+                result.textContent = '❌ 错误: ' + error.message;
+            }
+        }
+
+        function checkCookie() {
+            const result = document.getElementById('cookie-result');
+            const cookies = document.cookie;
+            result.textContent = '所有Cookies:\n' + cookies;
+            
+            const tokenCookie = cookies.split(';').find(c => c.includes('v3-admin-vite-token-key'));
+            if (tokenCookie) {
+                const token = tokenCookie.split('=')[1];
+                result.textContent += '\n\n找到Token:\n' + token.substring(0, 100) + '...';
+                savedToken = token;
+            } else {
+                result.textContent += '\n\n❌ 未找到Token Cookie';
+            }
+        }
+
+        async function testGetUser() {
+            const result = document.getElementById('user-result');
+            
+            if (!savedToken) {
+                // 尝试从Cookie读取
+                const cookies = document.cookie;
+                const tokenCookie = cookies.split(';').find(c => c.includes('v3-admin-vite-token-key'));
+                if (tokenCookie) {
+                    savedToken = tokenCookie.split('=')[1].trim();
+                }
+            }
+            
+            if (!savedToken) {
+                result.textContent = '❌ 没有Token,请先登录';
+                return;
+            }
+            
+            result.textContent = `发送请求...\nToken: ${savedToken.substring(0, 50)}...\n\n`;
+            
+            try {
+                const response = await fetch(`${API_BASE}/users/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${savedToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                result.textContent += `状态码: ${response.status}\n\n`;
+                
+                const data = await response.json();
+                result.textContent += JSON.stringify(data, null, 2);
+                
+                if (response.ok) {
+                    result.textContent = '✅ 成功!\n\n' + result.textContent;
+                } else {
+                    result.textContent = '❌ 失败!\n\n' + result.textContent;
+                }
+            } catch (error) {
+                result.textContent += '\n❌ 错误: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

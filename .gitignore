@@ -205,3 +205,223 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# ===== 加密货币交易项目特有的忽略规则 =====
+
+# 环境变量文件
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+.env.test
+backend/.env
+frontend/.env*
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+data.db
+trading_bot.db
+backend/data.db
+backend/trading_bot.db
+
+# 日志文件
+logs/
+*.log
+app.log
+trading_errors.log
+backend/logs/
+backend/logs/*.log
+
+# 配置文件（可能包含敏感信息）
+config.json
+config.yaml
+config.yml
+secrets.json
+credentials.json
+api_keys.json
+private_keys.json
+wallet.json
+
+# Python 相关
+__pycache__/
+*.py[codz]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py.cover
+.hypothesis/
+.pytest_cache/
+cover/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+cython_debug/
+.ruff_cache/
+.pypirc
+
+# Node.js 相关
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.npm
+.yarn-integrity
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+.pnp.js
+
+# 前端构建产物
+dist/
+build/
+.output/
+.nuxt/
+.next/
+.vuepress/dist/
+
+# 临时文件
+tmp/
+temp/
+.tmp/
+.cache/
+.parcel-cache/
+
+# IDE 和编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 系统文件
+*.lnk
+*.url
+*.desktop
+
+# 备份文件
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+
+# 测试覆盖率报告
+htmlcov/
+coverage/
+*.lcov
+.nyc_output/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# 虚拟环境
+.venv/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.virtualenv/
+pipenv/
+.pipenv/
+conda-meta/
+
+# 交易相关敏感数据
+wallets/
+private_keys/
+api_secrets/
+exchange_configs/
+trading_configs/
+strategy_configs/
+
+# 监控和分析数据
+monitoring/
+analytics/
+metrics/
+performance_data/
+
+# Docker 相关（生产环境）
+docker-compose.override.yml
+docker-compose.prod.override.yml
+
+# Kubernetes 相关
+kubeconfig/
+k8s-secrets/
+
+# CI/CD 相关
+.github/secrets/
+.gitlab-ci.yml
+secrets.yaml
+
+# 本地开发脚本（可能包含敏感配置）
+scripts/local_*.sh
+scripts/dev_*.sh
+scripts/test_*.sh
+
+# 文档构建
+docs/_build/
+docs/.doctrees/
+site/
+
+# 自动生成的文件
+auto-generated/
+generated/
+*.generated.*
+
+# 证书文件
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+
+# 加密相关
+encrypted/
+decrypted/
+*.enc
+*.gpg
+*.asc

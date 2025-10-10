@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  # 后端服务
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: chainmakes-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # 应用配置
+      - APP_ENV=production
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY}
+
+      # 数据库配置
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./chainmakes.db}
+
+      # OKX API 配置
+      - OKX_IS_DEMO=${OKX_IS_DEMO:-True}
+      - OKX_API_KEY=${OKX_API_KEY}
+      - OKX_API_SECRET=${OKX_API_SECRET}
+      - OKX_PASSPHRASE=${OKX_PASSPHRASE}
+
+      # JWT 配置
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+      # CORS 配置
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3333}
+
+    volumes:
+      # 数据持久化
+      - ./data:/app/data
+      - ./logs:/app/logs
+
+    networks:
+      - chainmakes-network
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # 前端服务
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: chainmakes-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    networks:
+      - chainmakes-network
+    volumes:
+      # SSL 证书 (可选)
+      - ./ssl:/etc/nginx/ssl:ro
+
+  # PostgreSQL 数据库 (可选,默认使用 SQLite)
+  postgres:
+    image: postgres:15-alpine
+    container_name: chainmakes-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=chainmakes
+      - POSTGRES_USER=${DB_USER:-chainmakes}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - chainmakes-network
+    profiles:
+      - with-postgres
+
+  # Redis (可选,用于缓存和消息队列)
+  redis:
+    image: redis:7-alpine
+    container_name: chainmakes-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - chainmakes-network
+    profiles:
+      - with-redis
+
+networks:
+  chainmakes-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
