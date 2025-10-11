@@ -21,7 +21,9 @@
       "Bash(dir /B /S)",
       "Bash(chmod +x \"E:\\down\\网站源码\\AI帮写的代码\\chainmakes\\scripts\\deploy.sh\")",
       "Bash(icacls \"E:\\down\\网站源码\\AI帮写的代码\\chainmakes\\scripts\\deploy.sh\" /grant Everyone:F)",
-      "Bash(test -d \"E:\\down\\网站源码\\AI帮写的代码\\chainmakes\\frontend\\types\")"
+      "Bash(test -d \"E:\\down\\网站源码\\AI帮写的代码\\chainmakes\\frontend\\types\")",
+      "Bash(test -d \"E:\\down\\网站源码\\AI帮写的代码\\chainmakes\\data\")",
+      "Bash(sqlite3 data/chainmakes.db \".tables\")"
     ],
     "deny": [],
     "ask": []

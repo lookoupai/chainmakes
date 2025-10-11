@@ -1,0 +1,70 @@
+version: '3.8'
+
+# 使用预构建镜像的配置文件
+# 用法: docker-compose -f docker-compose.image.yml up -d
+
+services:
+  # 后端服务
+  backend:
+    image: ghcr.io/lookoupai/chainmakes-backend:latest
+    # 或使用特定版本:
+    # image: ghcr.io/lookoupai/chainmakes-backend:main-93de746
+    container_name: chainmakes-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # 应用配置
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+
+      # 安全密钥(必须配置)
+      - SECRET_KEY=${SECRET_KEY}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-${SECRET_KEY}}
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+      # 数据库配置
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./data/chainmakes.db}
+      - DATABASE_URL_ASYNC=${DATABASE_URL_ASYNC:-sqlite+aiosqlite:///./data/chainmakes.db}
+
+      # OKX 交易配置
+      - OKX_IS_DEMO=${OKX_IS_DEMO:-true}
+      - OKX_PROXY=${OKX_PROXY:-}
+
+      # CORS 配置
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:3333}
+
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend/logs:/app/logs
+
+    networks:
+      - chainmakes-network
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # 前端服务
+  frontend:
+    image: ghcr.io/lookoupai/chainmakes-frontend:latest
+    # 或使用特定版本:
+    # image: ghcr.io/lookoupai/chainmakes-frontend:main-93de746
+    container_name: chainmakes-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - chainmakes-network
+
+networks:
+  chainmakes-network:
+    driver: bridge

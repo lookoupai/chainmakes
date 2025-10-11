@@ -36,8 +36,8 @@ services:
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:3333}
 
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - ./backend/data:/app/data
+      - ./backend/logs:/app/logs
 
     networks:
       - chainmakes-network

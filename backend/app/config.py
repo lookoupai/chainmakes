@@ -15,8 +15,9 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
     
     # 数据库配置 - 同步SQLite用于初始化,异步用于运行时
-    DATABASE_URL: str = "sqlite:///./trading_bot.db"
-    DATABASE_URL_ASYNC: str = "sqlite+aiosqlite:///./trading_bot.db"
+    # 统一使用 data 目录存储数据库,本地和 Docker 环境保持一致
+    DATABASE_URL: str = "sqlite:///./data/chainmakes.db"
+    DATABASE_URL_ASYNC: str = "sqlite+aiosqlite:///./data/chainmakes.db"
     DATABASE_POOL_SIZE: int = 5
     DATABASE_MAX_OVERFLOW: int = 10
     

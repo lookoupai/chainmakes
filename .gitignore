@@ -227,8 +227,6 @@ trading_bot.db
 backend/data.db
 backend/trading_bot.db
 
-# 日志文件
-logs/
 *.log
 app.log
 trading_errors.log
