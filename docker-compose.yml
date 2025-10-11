@@ -6,35 +6,39 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.backend
+    # 或使用预构建镜像(推荐生产环境):
+    # image: ghcr.io/yourusername/chainmakes-backend:latest
     container_name: chainmakes-backend
     restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
       # 应用配置
-      - APP_ENV=production
-      - DEBUG=False
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+
+      # 安全密钥(必须配置)
       - SECRET_KEY=${SECRET_KEY}
-
-      # 数据库配置
-      - DATABASE_URL=${DATABASE_URL:-sqlite:///./chainmakes.db}
-
-      # OKX API 配置
-      - OKX_IS_DEMO=${OKX_IS_DEMO:-True}
-      - OKX_API_KEY=${OKX_API_KEY}
-      - OKX_API_SECRET=${OKX_API_SECRET}
-      - OKX_PASSPHRASE=${OKX_PASSPHRASE}
-
-      # JWT 配置
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-${SECRET_KEY}}
       - JWT_ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
 
+      # 数据库配置
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./data/chainmakes.db}
+      - DATABASE_URL_ASYNC=${DATABASE_URL_ASYNC:-sqlite+aiosqlite:///./data/chainmakes.db}
+
+      # OKX API 配置
+      - OKX_IS_DEMO=${OKX_IS_DEMO:-true}
+      - OKX_API_KEY=${OKX_API_KEY}
+      - OKX_API_SECRET=${OKX_API_SECRET}
+      - OKX_PASSPHRASE=${OKX_PASSPHRASE}
+      - OKX_PROXY=${OKX_PROXY:-}  # 国内需要设置代理,海外留空
+
       # CORS 配置
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3333}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:3333}
 
     volumes:
-      # 数据持久化
       - ./data:/app/data
       - ./logs:/app/logs
 
@@ -53,50 +57,60 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+    # 或使用预构建镜像(推荐生产环境):
+    # image: ghcr.io/yourusername/chainmakes-frontend:latest
     container_name: chainmakes-frontend
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "${FRONTEND_PORT:-80}:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - chainmakes-network
-    volumes:
-      # SSL 证书 (可选)
-      - ./ssl:/etc/nginx/ssl:ro
 
-  # PostgreSQL 数据库 (可选,默认使用 SQLite)
+  # PostgreSQL (可选,使用 --profile postgres 启动)
   postgres:
     image: postgres:15-alpine
-    container_name: chainmakes-db
+    container_name: chainmakes-postgres
     restart: unless-stopped
     environment:
-      - POSTGRES_DB=chainmakes
-      - POSTGRES_USER=${DB_USER:-chainmakes}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-chainmakes}
+      - POSTGRES_USER=${POSTGRES_USER:-chainmakes}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - chainmakes-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-chainmakes}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     profiles:
-      - with-postgres
+      - postgres
 
-  # Redis (可选,用于缓存和消息队列)
+  # Redis (可选,使用 --profile redis 启动)
   redis:
     image: redis:7-alpine
     container_name: chainmakes-redis
     restart: unless-stopped
+    command: redis-server ${REDIS_PASSWORD:+--requirepass ${REDIS_PASSWORD}}
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
     networks:
       - chainmakes-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
     profiles:
-      - with-redis
+      - redis
 
 networks:
   chainmakes-network:
@@ -104,4 +118,6 @@ networks:
 
 volumes:
   postgres-data:
+    driver: local
   redis-data:
+    driver: local

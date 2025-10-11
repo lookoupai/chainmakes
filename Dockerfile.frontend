@@ -1,16 +1,21 @@
 # ChainMakes Frontend Dockerfile
-# 多阶段构建
+# 多阶段构建,支持多架构: amd64, arm64
 
 # 阶段1: 构建
 FROM node:18-alpine AS builder
 
+# 添加构建参数
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION=latest
+
 WORKDIR /app
 
 # 复制 package 文件
-COPY frontend/package.json frontend/pnpm-lock.yaml ./
+COPY frontend/package.json frontend/pnpm-lock.yaml* ./
 
 # 安装 pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@latest
 
 # 安装依赖
 RUN pnpm install --frozen-lockfile
@@ -24,6 +29,19 @@ RUN pnpm build
 # 阶段2: 生产环境
 FROM nginx:alpine
 
+# 添加标签
+LABEL org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.authors="ChainMakes Team" \
+      org.opencontainers.image.url="https://github.com/yourusername/chainmakes" \
+      org.opencontainers.image.source="https://github.com/yourusername/chainmakes" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.title="ChainMakes Frontend" \
+      org.opencontainers.image.description="Cryptocurrency Trading Bot Web Interface"
+
+# 安装 curl 用于健康检查
+RUN apk add --no-cache curl
+
 # 复制构建产物
 COPY --from=builder /app/dist /usr/share/nginx/html
 
@@ -32,6 +50,10 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # 暴露端口
 EXPOSE 80
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/health || exit 1
 
 # 启动 Nginx
 CMD ["nginx", "-g", "daemon off;"]

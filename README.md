@@ -6,9 +6,13 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 一个功能完整的加密货币价差套利交易机器人系统，支持多交易所价差监控和自动化交易。
+
 项目模仿 [https://app.chainmakes.com/](https://app.chainmakes.com/)
+
 感谢站长发视频分享逻辑思路 [https://www.youtube.com/playlist?list=PLHG3GUeIjEW3jM_6Y4hq_CBr-BrP-jZpv](https://www.youtube.com/playlist?list=PLHG3GUeIjEW3jM_6Y4hq_CBr-BrP-jZpv)
+
 个人不会代码，全程让AI分析编写和修复问题，无法保证稳定运行，有兴趣的可以找站长购买 [@river2liu](https://t.me/river2liu)
+
 
 ## ✨ 主要特性
 
@@ -59,17 +63,28 @@ pnpm dev
 - 用户名: `admin`
 - 密码: `admin123`
 
-### Docker 部署
+### Docker 部署 (推荐)
 
 ```bash
-# 开发环境
+# 1. 配置环境变量
+cp .env.example .env
+vim .env  # 修改必要的配置
+
+# 2. 启动服务
 docker-compose up -d
 
-# 生产环境
-docker-compose -f docker-compose.prod.yml up -d
+# 3. 查看日志
+docker-compose logs -f
+
+# 4. 停止服务
+docker-compose down
 ```
 
-详细部署说明请参考 [DEPLOYMENT_README.md](DEPLOYMENT_README.md)
+**国内用户**: 需要在 `.env` 中设置代理 `OKX_PROXY=http://127.0.0.1:7890`
+
+**海外用户**: 保持 `OKX_PROXY=` 为空即可
+
+详细部署说明请参考 [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ### ⚠️ 重要安全提醒
 

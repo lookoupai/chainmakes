@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Read(//e/**)",
+      "mcp__fetch__fetch",
+      "mcp__mcp-deepwiki__deepwiki_fetch",
+      "Bash(git mv DEVELOPMENT_PROGRESS_2025-10-10.md archive/)",
+      "Bash(git mv DEVELOPMENT_PROGRESS_2025-10-11.md archive/)",
+      "Bash(git mv OKX_INTEGRATION_PROGRESS_2025-10-07.md archive/)",
+      "Bash(git mv DEVELOPMENT_PROGRESS_ARCHIVE.md archive/)",
+      "Bash(git mv CRITICAL_FIXES_2025-10-10.md fixes/)",
+      "Bash(git mv NETWORK_RETRY_FIX.md fixes/)",
+      "Bash(git mv API_FREQUENCY_OPTIMIZATION.md fixes/)",
+      "Bash(git mv STOP_BOT_AUTO_CLOSE_FIX.md fixes/)",
+      "Bash(git mv TASK_TIMEOUT_FIX.md fixes/)",
+      "Bash(git mv POSITION_AMOUNT_ZERO_FIX.md fixes/)",
+      "Bash(tree /F /A)",
+      "Bash(dir /B /S)",
+      "Bash(chmod +x \"E:\\down\\网站源码\\AI帮写的代码\\chainmakes\\scripts\\deploy.sh\")",
+      "Bash(icacls \"E:\\down\\网站源码\\AI帮写的代码\\chainmakes\\scripts\\deploy.sh\" /grant Everyone:F)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
