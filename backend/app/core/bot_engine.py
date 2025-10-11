@@ -821,11 +821,14 @@ class BotEngine:
         return total
     
     async def _close_all_positions(self):
-        """平仓所有持仓"""
+        """平仓所有持仓并计算总收益"""
         try:
             logger.info(f"开始平仓: {self.bot.bot_name}")
 
             positions = await self._get_open_positions()
+
+            # 🔥 新增：累计本次平仓的已实现盈亏
+            cycle_realized_pnl = Decimal('0')
 
             for position in positions:
                 # 平仓订单方向与持仓方向相反
@@ -853,6 +856,15 @@ class BotEngine:
                         logger.warning(
                             f"交易所无持仓 {position.symbol}，但数据库有记录，跳过平仓"
                         )
+
+                        # 🔥 累计该持仓的盈亏（即使交易所无持仓，数据库可能记录了盈亏）
+                        if position.unrealized_pnl is not None:
+                            cycle_realized_pnl += position.unrealized_pnl
+                            logger.info(
+                                f"持仓 {position.symbol} (交易所已平) 已实现盈亏: {position.unrealized_pnl:.2f} USDT, "
+                                f"累计盈亏: {cycle_realized_pnl:.2f} USDT"
+                            )
+
                         # 直接更新数据库状态为已关闭
                         position.is_open = False
                         position.closed_at = datetime.utcnow()
@@ -868,6 +880,15 @@ class BotEngine:
                             f"持仓数量 {actual_amount} 小于最小精度 {min_amount}，"
                             f"跳过平仓 {position.symbol}"
                         )
+
+                        # 🔥 累计该持仓的盈亏（即使金额太小无法平仓）
+                        if position.unrealized_pnl is not None:
+                            cycle_realized_pnl += position.unrealized_pnl
+                            logger.info(
+                                f"持仓 {position.symbol} (数量太小) 已实现盈亏: {position.unrealized_pnl:.2f} USDT, "
+                                f"累计盈亏: {cycle_realized_pnl:.2f} USDT"
+                            )
+
                         # 标记为已关闭（金额太小，视为已平仓）
                         position.is_open = False
                         position.closed_at = datetime.utcnow()
@@ -896,6 +917,14 @@ class BotEngine:
                 # 保存平仓订单
                 await self._save_order(order, 0)  # dca_level=0表示平仓
 
+                # 🔥 累计本次持仓的已实现盈亏
+                if position.unrealized_pnl is not None:
+                    cycle_realized_pnl += position.unrealized_pnl
+                    logger.info(
+                        f"持仓 {position.symbol} 已实现盈亏: {position.unrealized_pnl:.2f} USDT, "
+                        f"累计盈亏: {cycle_realized_pnl:.2f} USDT"
+                    )
+
                 # 更新持仓状态
                 position.is_open = False
                 position.closed_at = datetime.utcnow()
@@ -916,6 +945,13 @@ class BotEngine:
                     "closed_at": position.closed_at.isoformat() if position.closed_at else None
                 })
 
+            # 🔥 更新总收益
+            self.bot.total_profit += cycle_realized_pnl
+            logger.info(
+                f"💰 本次平仓盈亏: {cycle_realized_pnl:.2f} USDT, "
+                f"总收益: {self.bot.total_profit:.2f} USDT"
+            )
+
             # 更新机器人状态
             self.bot.current_cycle += 1
             self.bot.current_dca_count = 0
@@ -924,7 +960,10 @@ class BotEngine:
 
             await self.db.commit()
 
-            await self._log_trade("平仓成功")
+            await self._log_trade(
+                f"平仓成功 - 本轮盈亏: {cycle_realized_pnl:.2f} USDT, "
+                f"总收益: {self.bot.total_profit:.2f} USDT"
+            )
 
             # 推送状态更新
             await self._broadcast_status_update({
