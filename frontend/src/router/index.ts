@@ -64,6 +64,23 @@ export const constantRoutes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: "/user",
+    component: Layouts,
+    meta: {
+      hidden: true
+    },
+    children: [
+      {
+        path: "settings",
+        component: () => import("@/pages/user/Settings.vue"),
+        name: "UserSettings",
+        meta: {
+          title: "账户设置"
+        }
+      }
+    ]
+  },
+  {
     path: "/bots",
     component: Layouts,
     redirect: "/bots/list",

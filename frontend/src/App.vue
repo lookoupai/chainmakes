@@ -19,11 +19,10 @@ initTheme()
 initGreyAndColorWeakness()
 
 // #region 初始化通知
-initStarNotification()
-
-initStoreNotification()
-
-initMobileNotification()
+// 注释掉模板推广通知，避免每次刷新都弹出
+// initStarNotification()
+// initStoreNotification()
+// initMobileNotification()
 // #endregion
 </script>
 

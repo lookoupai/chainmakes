@@ -8,3 +8,12 @@ export function getCurrentUserApi() {
     method: "get"
   })
 }
+
+/** 更新当前用户信息 */
+export function updateCurrentUserApi(data: Users.UpdateUserRequest) {
+  return request<Users.CurrentUserResponseData>({
+    url: "users/me",
+    method: "put",
+    data
+  })
+}

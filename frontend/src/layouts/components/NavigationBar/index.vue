@@ -59,12 +59,9 @@ function logout() {
         </div>
         <template #dropdown>
           <el-dropdown-menu>
-            <a target="_blank" href="https://github.com/un-pany/v3-admin-vite">
-              <el-dropdown-item>GitHub</el-dropdown-item>
-            </a>
-            <a target="_blank" href="https://gitee.com/un-pany/v3-admin-vite">
-              <el-dropdown-item>Gitee</el-dropdown-item>
-            </a>
+            <el-dropdown-item @click="router.push('/user/settings')">
+              账户设置
+            </el-dropdown-item>
             <el-dropdown-item divided @click="logout">
               退出登录
             </el-dropdown-item>
