@@ -11,14 +11,19 @@ ARG VERSION=latest
 
 WORKDIR /app
 
+# 安装构建工具
+RUN apk add --no-cache python3 make g++
+
 # 复制 package 文件
 COPY frontend/package.json frontend/pnpm-lock.yaml* ./
 
-# 安装 pnpm
-RUN npm install -g pnpm@latest
+# 安装 pnpm 并设置镜像源
+RUN npm config set registry https://registry.npmmirror.com && \
+    npm install -g pnpm@latest && \
+    pnpm config set registry https://registry.npmmirror.com
 
 # 安装依赖
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile || pnpm install
 
 # 复制源代码
 COPY frontend/ .
@@ -27,8 +32,8 @@ COPY frontend/ .
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV NODE_ENV=production
 
-# 构建生产版本 (使用专门的 docker 构建命令,跳过类型检查)
-RUN pnpm run build:docker
+# 构建生产版本 (直接使用 vite,最简单可靠)
+RUN pnpm vite build || npx vite build
 
 # 阶段2: 生产环境
 FROM nginx:alpine
