@@ -95,7 +95,8 @@ export const constantRoutes: RouteRecordRaw[] = [
         component: () => import("@/pages/bots/BotList.vue"),
         name: "BotList",
         meta: {
-          title: "机器人列表"
+          title: "机器人列表",
+          elIcon: "List"
         }
       },
       {
@@ -142,7 +143,8 @@ export const constantRoutes: RouteRecordRaw[] = [
         component: () => import("@/pages/exchanges/ExchangeList.vue"),
         name: "ExchangeList",
         meta: {
-          title: "账户列表"
+          title: "API配置",
+          elIcon: "Key"
         }
       }
     ]
