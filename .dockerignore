@@ -21,11 +21,12 @@ CONTRIBUTING.md
 *~
 .DS_Store
 
-# Environment
+# Environment (排除根目录的 .env,但保留前端的)
 .env
-.env.*
+.env.local
+.env.*.local
+!frontend/.env.*
 !.env.example
-!.env.overseas.example
 
 # Python
 __pycache__/

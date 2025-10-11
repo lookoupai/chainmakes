@@ -13,11 +13,16 @@ vim .env
 
 必须修改:
 - `SECRET_KEY` / `ENCRYPTION_KEY` - 随机密钥
-- `OKX_API_KEY` / `OKX_API_SECRET` / `OKX_PASSPHRASE` - OKX API 凭证
 
-**代理配置**:
-- 🌍 海外: `OKX_PROXY=` (留空)
-- 🇨🇳 国内: `OKX_PROXY=http://127.0.0.1:7890`
+可选配置:
+- `OKX_IS_DEMO` - 模拟盘/实盘切换
+  - `true` = 模拟盘 (默认,推荐)
+  - `false` = 实盘 (真实资金,有风险!)
+- `OKX_PROXY` - 代理地址 (国内需要,海外留空)
+  - 🌍 海外: `OKX_PROXY=` (留空)
+  - 🇨🇳 国内: `OKX_PROXY=http://127.0.0.1:7890`
+
+**注意**: 交易所 API 密钥在前端页面添加,不在 .env 中配置!
 
 ### 2. 启动服务
 

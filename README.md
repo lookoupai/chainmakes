@@ -68,7 +68,7 @@ pnpm dev
 ```bash
 # 1. 配置环境变量
 cp .env.example .env
-vim .env  # 修改必要的配置
+vim .env  # 修改 SECRET_KEY 和 ENCRYPTION_KEY
 
 # 2. 启动服务
 docker-compose up -d
@@ -80,9 +80,10 @@ docker-compose logs -f
 docker-compose down
 ```
 
-**国内用户**: 需要在 `.env` 中设置代理 `OKX_PROXY=http://127.0.0.1:7890`
-
-**海外用户**: 保持 `OKX_PROXY=` 为空即可
+**重要**:
+- 交易所 API 密钥在前端页面添加,不在 `.env` 中配置
+- 国内用户如需代理访问 OKX,在 `.env` 设置 `OKX_PROXY=http://127.0.0.1:7890`
+- 海外用户无需配置代理
 
 详细部署说明请参考 [DEPLOYMENT.md](DEPLOYMENT.md)
 

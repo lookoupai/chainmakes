@@ -28,12 +28,9 @@ services:
       - DATABASE_URL=${DATABASE_URL:-sqlite:///./data/chainmakes.db}
       - DATABASE_URL_ASYNC=${DATABASE_URL_ASYNC:-sqlite+aiosqlite:///./data/chainmakes.db}
 
-      # OKX API 配置
-      - OKX_IS_DEMO=${OKX_IS_DEMO:-true}
-      - OKX_API_KEY=${OKX_API_KEY}
-      - OKX_API_SECRET=${OKX_API_SECRET}
-      - OKX_PASSPHRASE=${OKX_PASSPHRASE}
-      - OKX_PROXY=${OKX_PROXY:-}  # 国内需要设置代理,海外留空
+      # OKX 交易配置
+      - OKX_IS_DEMO=${OKX_IS_DEMO:-true}  # 模拟盘(true)/实盘(false)
+      - OKX_PROXY=${OKX_PROXY:-}  # 代理地址(国内需要)
 
       # CORS 配置
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:3333}
