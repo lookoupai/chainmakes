@@ -61,11 +61,11 @@ const updateChart = () => {
   const longPositions = props.positions.filter(p => p.side === 'long')
   const shortPositions = props.positions.filter(p => p.side === 'short')
 
-  const longValue = longPositions.reduce((sum, p) => sum + (p.amount * p.entry_price), 0)
-  const shortValue = shortPositions.reduce((sum, p) => sum + (p.amount * p.entry_price), 0)
+  const longValue = longPositions.reduce((sum, p) => sum + (Number(p.amount || 0) * Number(p.entry_price || 0)), 0)
+  const shortValue = shortPositions.reduce((sum, p) => sum + (Number(p.amount || 0) * Number(p.entry_price || 0)), 0)
 
-  const longPnl = longPositions.reduce((sum, p) => sum + (p.unrealized_pnl || 0), 0)
-  const shortPnl = shortPositions.reduce((sum, p) => sum + (p.unrealized_pnl || 0), 0)
+  const longPnl = longPositions.reduce((sum, p) => sum + Number(p.unrealized_pnl || 0), 0)
+  const shortPnl = shortPositions.reduce((sum, p) => sum + Number(p.unrealized_pnl || 0), 0)
 
   const option: echarts.EChartsOption = {
     title: {

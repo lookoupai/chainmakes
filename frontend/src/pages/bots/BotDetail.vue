@@ -88,8 +88,8 @@
           </el-descriptions-item>
 
           <el-descriptions-item label="总收益" :span="3">
-            <span :class="['profit-value', botInfo && botInfo.total_profit >= 0 ? 'profit' : 'loss']">
-              ${{ botInfo?.total_profit.toFixed(2) }}
+            <span :class="['profit-value', botInfo && Number(botInfo.total_profit) >= 0 ? 'profit' : 'loss']">
+              ${{ Number(botInfo?.total_profit || 0).toFixed(2) }}
             </span>
           </el-descriptions-item>
 
@@ -168,23 +168,23 @@
           </el-table-column>
           <el-table-column prop="amount" label="数量" width="120">
             <template #default="{ row }">
-              {{ row.amount.toFixed(4) }}
+              {{ Number(row.amount || 0).toFixed(4) }}
             </template>
           </el-table-column>
           <el-table-column prop="entry_price" label="开仓均价" width="130">
             <template #default="{ row }">
-              ${{ row.entry_price.toFixed(6) }}
+              ${{ Number(row.entry_price || 0).toFixed(6) }}
             </template>
           </el-table-column>
           <el-table-column prop="current_price" label="当前价格" width="130">
             <template #default="{ row }">
-              ${{ row.current_price.toFixed(6) }}
+              ${{ Number(row.current_price || 0).toFixed(6) }}
             </template>
           </el-table-column>
           <el-table-column prop="unrealized_pnl" label="未实现盈亏" width="150">
             <template #default="{ row }">
-              <span :class="['profit-value', row.unrealized_pnl >= 0 ? 'profit' : 'loss']">
-                ${{ row.unrealized_pnl.toFixed(2) }}
+              <span :class="['profit-value', Number(row.unrealized_pnl || 0) >= 0 ? 'profit' : 'loss']">
+                ${{ Number(row.unrealized_pnl || 0).toFixed(2) }}
               </span>
             </template>
           </el-table-column>
@@ -218,17 +218,17 @@
           <el-table-column prop="order_type" label="类型" width="100" />
           <el-table-column prop="amount" label="数量" width="120">
             <template #default="{ row }">
-              {{ row.amount.toFixed(4) }}
+              {{ Number(row.amount || 0).toFixed(4) }}
             </template>
           </el-table-column>
           <el-table-column prop="price" label="价格" width="130">
             <template #default="{ row }">
-              {{ row.price ? `$${row.price.toFixed(6)}` : '-' }}
+              {{ row.price ? `$${Number(row.price).toFixed(6)}` : '-' }}
             </template>
           </el-table-column>
           <el-table-column prop="cost" label="成交额" width="130">
             <template #default="{ row }">
-              {{ row.cost ? `$${row.cost.toFixed(2)}` : '-' }}
+              {{ row.cost ? `$${Number(row.cost).toFixed(2)}` : '-' }}
             </template>
           </el-table-column>
           <el-table-column prop="status" label="状态" width="100">
@@ -375,7 +375,7 @@ const { isConnected, connect: connectWebSocket, disconnect: disconnectWebSocket 
         // 更新交易指标数据
         tradingMetrics.value.push({
           timestamp: new Date().toISOString(),
-          profitLoss: botInfo.value.total_profit,
+          profitLoss: Number(botInfo.value.total_profit || 0),
           totalTrades: data.total_trades,
           currentCycle: data.current_cycle,
           dcaCount: data.current_dca_count
