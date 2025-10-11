@@ -9,6 +9,7 @@
     "dev": "vite",
     "build:staging": "vue-tsc && vite build --mode staging",
     "build": "vue-tsc && vite build",
+    "build:docker": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --fix",
     "prepare": "husky",
