@@ -142,6 +142,7 @@ async def create_bot(
         profit_mode=bot_data.profit_mode,
         profit_ratio=float(bot_data.profit_ratio),
         stop_loss_ratio=float(bot_data.stop_loss_ratio) if bot_data.stop_loss_ratio is not None else None,
+        reverse_opening=bot_data.reverse_opening,
         pause_after_close=bot_data.pause_after_close,
         status="stopped"
     )

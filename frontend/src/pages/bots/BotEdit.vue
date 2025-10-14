@@ -147,6 +147,28 @@
         <!-- 止盈止损 -->
         <el-divider content-position="left">止盈止损配置</el-divider>
 
+        <el-form-item label="开仓方向" prop="reverse_opening">
+          <el-radio-group v-model="form.reverse_opening" :disabled="originalBot?.status === 'running'">
+            <el-radio :value="false">
+              <span style="font-weight: bold;">正向开仓（价差回归策略）</span>
+            </el-radio>
+            <el-radio :value="true">
+              <span style="font-weight: bold;">反向开仓（价差扩大策略）</span>
+            </el-radio>
+          </el-radio-group>
+          <div class="form-tip" style="margin-top: 8px;">
+            <span v-if="originalBot?.status === 'running'" style="color: #f56c6c;">⚠️ 机器人运行中，无法修改开仓方向。请先停止机器人后再修改。</span>
+            <template v-else>
+              <strong>正向开仓（价差回归策略）：</strong><br>
+              • 做多弱势币种，做空强势币种<br>
+              • 预期价差会收窄，两个币种价格会趋于一致<br>
+              <strong style="margin-top: 4px; display: inline-block;">反向开仓（价差扩大策略）：</strong><br>
+              • 做多强势币种，做空弱势币种<br>
+              • 预期价差会继续扩大，强者恒强、弱者恒弱<br>
+            </template>
+          </div>
+        </el-form-item>
+
         <el-form-item label="止盈模式" prop="profit_mode">
           <el-radio-group v-model="form.profit_mode">
             <el-radio value="position">仓位止盈</el-radio>
@@ -230,6 +252,7 @@ const form = reactive<BotUpdateRequest>({
   profit_mode: 'position',
   profit_ratio: 1.0,
   stop_loss_ratio: 10.0,
+  reverse_opening: false,
   pause_after_close: true
 })
 
@@ -291,6 +314,7 @@ const fetchBotDetail = async () => {
       profit_mode: bot.profit_mode,
       profit_ratio: bot.profit_ratio,
       stop_loss_ratio: bot.stop_loss_ratio,
+      reverse_opening: bot.reverse_opening ?? false,
       pause_after_close: bot.pause_after_close,
       market1_symbol: bot.market1_symbol,
       market2_symbol: bot.market2_symbol,

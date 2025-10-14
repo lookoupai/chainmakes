@@ -75,6 +75,13 @@ class BotInstance(Base):
     profit_ratio: Mapped[Decimal] = mapped_column(DECIMAL(10, 4), default=Decimal("1.0"), nullable=False)  # 止盈比例(%)
     stop_loss_ratio: Mapped[Decimal] = mapped_column(DECIMAL(10, 4), default=Decimal("10.0"), nullable=False)  # 止损比例(%)
     
+    # 开仓方向配置
+    reverse_opening: Mapped[bool] = mapped_column(
+        Boolean, 
+        default=False, 
+        nullable=False
+    )  # False=正向开仓(价差回归), True=反向开仓(价差扩大)
+    
     # 状态控制
     status: Mapped[str] = mapped_column(
         String(20), 

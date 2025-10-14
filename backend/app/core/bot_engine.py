@@ -99,9 +99,17 @@ class BotEngine:
                 await self.db.commit()
                 logger.info(f"[BotEngine] Bot {self.bot_id} 状态已更新为 running")
 
+                # 🔥 启动延迟：避免多个机器人同时启动时产生请求风暴
+                startup_delay = 2 + (self.bot_id % 3)  # 2-4秒的随机延迟
+                logger.info(f"[BotEngine] Bot {self.bot_id} 启动延迟 {startup_delay} 秒,避免API频率限制")
+                await asyncio.sleep(startup_delay)
+
                 # 设置杠杆
                 logger.info(f"[BotEngine] Bot {self.bot_id} 开始设置杠杆")
                 await self._set_leverage()
+                
+                # 设置杠杆后等待,避免请求过快
+                await asyncio.sleep(1)
 
                 # 同步交易所状态（防止后端重启后数据不一致）
                 logger.info(f"[BotEngine] Bot {self.bot_id} 开始同步交易所状态")
@@ -160,6 +168,14 @@ class BotEngine:
         if self.db and self.bot:
             self.bot.status = "paused"
             await self.db.commit()
+        
+        # 停止数据同步服务
+        try:
+            from app.services.data_sync_service import data_sync_service
+            await data_sync_service.stop_sync_for_bot(self.bot_id)
+            logger.info(f"[BotEngine] 已停止机器人 {self.bot_id} 的数据同步服务")
+        except Exception as e:
+            logger.warning(f"[BotEngine] 停止数据同步服务失败: {str(e)}")
     
     async def stop(self):
         """停止机器人"""
@@ -616,6 +632,16 @@ class BotEngine:
                 market1_change, market2_change
             )
             
+            # 如果启用反向开仓，反转交易方向
+            if self.bot.reverse_opening:
+                market1_side = 'sell' if market1_side == 'buy' else 'buy'
+                market2_side = 'sell' if market2_side == 'buy' else 'buy'
+                logger.info(
+                    f"反向开仓模式: 原方向已反转 - "
+                    f"{self.bot.market1_symbol}={market1_side}, "
+                    f"{self.bot.market2_symbol}={market2_side}"
+                )
+            
             # 计算投资金额(考虑倍投和杠杆)
             # 在永续合约中：
             # - investment_per_order 是每单的保证金金额
@@ -686,9 +712,9 @@ class BotEngine:
             await self._save_order(order1, dca_level + 1)
             await self._save_order(order2, dca_level + 1)
 
-            # 创建或更新持仓记录
-            await self._create_or_update_position(order1, market1_side, market1_price, dca_level + 1)
-            await self._create_or_update_position(order2, market2_side, market2_price, dca_level + 1)
+            # 创建或更新持仓记录（使用订单中的实际成交价，不再传入预估价格）
+            await self._create_or_update_position(order1, market1_side, dca_level + 1)
+            await self._create_or_update_position(order2, market2_side, dca_level + 1)
             
             # 更新机器人状态
             self.bot.current_dca_count += 1
@@ -822,10 +848,17 @@ class BotEngine:
     
     async def _close_all_positions(self):
         """平仓所有持仓并计算总收益"""
+        # 🔥 关键修复：先获取所有需要的数据,避免在事务中执行新查询
+        positions = None
         try:
             logger.info(f"开始平仓: {self.bot.bot_name}")
 
+            # 先获取持仓列表（在任何 commit 之前）
             positions = await self._get_open_positions()
+            
+            if not positions:
+                logger.info(f"没有需要平仓的持仓")
+                return
 
             # 🔥 新增：累计本次平仓的已实现盈亏
             cycle_realized_pnl = Decimal('0')
@@ -914,6 +947,20 @@ class BotEngine:
                     reduce_only=True
                 )
 
+                # 🔥 关键修复：市价单创建后等待成交，然后重新查询订单状态获取实际成交价格和成本
+                logger.info(f"等待平仓订单成交...")
+                await asyncio.sleep(2)  # 等待2秒让订单成交
+
+                # 重新查询订单状态，获取实际成交价格和成本
+                try:
+                    order = await self.exchange.get_order(order['id'], position.symbol)
+                    logger.info(
+                        f"平仓订单查询成功: {position.symbol} "
+                        f"filled={order['filled']}, price={order.get('price')}, cost={order.get('cost')}"
+                    )
+                except Exception as e:
+                    logger.warning(f"重新查询平仓订单状态失败: {str(e)}, 使用原始订单数据")
+
                 # 保存平仓订单
                 await self._save_order(order, 0)  # dca_level=0表示平仓
 
@@ -981,7 +1028,19 @@ class BotEngine:
 
         except Exception as e:
             logger.error(f"平仓失败: {str(e)}", exc_info=True)
-            await self._log_error(f"平仓失败: {str(e)}")
+            # 🔥 关键修复：记录错误但不调用 _log_error (避免在异常处理中再次操作数据库)
+            try:
+                # 仅记录到数据库,不再 commit (会在外层 commit)
+                if self.db:
+                    log = TradeLog(
+                        bot_instance_id=self.bot.id,
+                        log_type="error",
+                        message=f"平仓失败: {str(e)}"
+                    )
+                    self.db.add(log)
+                    # 不调用 commit(),避免嵌套事务问题
+            except Exception as log_error:
+                logger.error(f"记录错误日志失败: {str(log_error)}")
     
     async def close_all_positions(self):
         """
@@ -1063,11 +1122,27 @@ class BotEngine:
         self,
         order_data: dict,
         side: str,
-        price: Decimal,
         dca_level: int
     ):
         """创建或更新持仓记录"""
         try:
+            # 🔥 修复：使用订单的实际成交价格，而不是预估价格
+            # 计算实际成交均价
+            if order_data['filled'] > 0 and order_data.get('cost'):
+                actual_price = Decimal(str(order_data['cost'])) / Decimal(str(order_data['filled']))
+            elif order_data.get('price'):
+                # 如果cost不可用，使用订单返回的price字段
+                actual_price = Decimal(str(order_data['price']))
+            else:
+                # 最后的备用方案（理论上不应该走到这里）
+                logger.warning(f"⚠️ 无法获取订单实际成交价，订单数据: {order_data}")
+                actual_price = Decimal('0')
+            
+            logger.info(
+                f"📊 订单实际成交价: {order_data['symbol']} = {actual_price:.2f} USDT "
+                f"(成交量={order_data['filled']}, 成本={order_data.get('cost')})"
+            )
+            
             # 检查是否已有该交易对的持仓
             result = await self.db.execute(
                 select(Position)
@@ -1086,15 +1161,21 @@ class BotEngine:
                     old_amount = position.amount
                     old_cost = old_amount * position.entry_price
                     new_amount = Decimal(str(order_data['filled']))
-                    new_cost = new_amount * price
+                    new_cost = new_amount * actual_price  # 使用实际成交价
                     
                     total_amount = old_amount + new_amount
                     total_cost = old_cost + new_cost
                     new_avg_price = total_cost / total_amount
                     
+                    logger.info(
+                        f"📈 加仓计算: 原持仓={old_amount:.4f}@{position.entry_price:.2f}, "
+                        f"新增={new_amount:.4f}@{actual_price:.2f}, "
+                        f"总持仓={total_amount:.4f}@{new_avg_price:.2f}"
+                    )
+                    
                     position.amount = total_amount
                     position.entry_price = new_avg_price
-                    position.current_price = price
+                    position.current_price = actual_price
                     position.updated_at = datetime.utcnow()
                 else:
                     # 反向交易，减少持仓
@@ -1134,16 +1215,17 @@ class BotEngine:
                     symbol=order_data['symbol'],
                     side=position_side,  # 使用持仓方向，而不是订单方向
                     amount=Decimal(str(order_data['filled'])),
-                    entry_price=price,
-                    current_price=price,
+                    entry_price=actual_price,  # 使用实际成交价
+                    current_price=actual_price,  # 使用实际成交价
                     is_open=True
                 )
                 self.db.add(position)
                 await self.db.commit()
 
                 logger.info(
-                    f"创建持仓: {order_data['symbol']}, "
-                    f"订单方向={side}, 持仓方向={position_side}, 数量={position.amount}"
+                    f"✅ 创建持仓: {order_data['symbol']}, "
+                    f"订单方向={side}, 持仓方向={position_side}, "
+                    f"数量={position.amount:.4f}, 入场价={actual_price:.2f} USDT"
                 )
                 
                 # 推送持仓更新

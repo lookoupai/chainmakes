@@ -24,6 +24,7 @@ export interface BotCreateRequest {
   profit_mode: 'regression' | 'position'
   profit_ratio: number
   stop_loss_ratio: number
+  reverse_opening: boolean
   pause_after_close: boolean
 }
 
@@ -49,6 +50,7 @@ export interface BotResponse {
   profit_mode: string
   profit_ratio: number
   stop_loss_ratio: number
+  reverse_opening: boolean
   status: 'running' | 'paused' | 'stopped'
   pause_after_close: boolean
   current_cycle: number

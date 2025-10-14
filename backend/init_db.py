@@ -3,8 +3,14 @@
 创建所有表并添加测试用户
 """
 import asyncio
+from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
+
+# 确保加载 .env 文件
+from dotenv import load_dotenv
+env_path = Path(__file__).parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 from app.db.session import engine, AsyncSessionLocal
 from app.db.base import Base

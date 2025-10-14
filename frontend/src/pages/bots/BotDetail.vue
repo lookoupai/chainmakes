@@ -77,6 +77,12 @@
             {{ botInfo?.max_dca_times }}次
           </el-descriptions-item>
 
+          <el-descriptions-item label="开仓方向" :span="3">
+            <el-tag :type="botInfo?.reverse_opening ? 'warning' : 'primary'">
+              {{ botInfo?.reverse_opening ? '反向开仓（价差扩大策略）' : '正向开仓（价差回归策略）' }}
+            </el-tag>
+          </el-descriptions-item>
+
           <el-descriptions-item label="止盈模式">
             {{ botInfo?.profit_mode === 'position' ? '仓位止盈' : '回归止盈' }}
           </el-descriptions-item>

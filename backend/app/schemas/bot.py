@@ -42,6 +42,9 @@ class BotCreate(BotBase):
     profit_ratio: Decimal = Field(default=Decimal("1.0"), description="止盈比例(%)")
     stop_loss_ratio: Decimal = Field(default=Decimal("10.0"), description="止损比例(%)")
     
+    # 开仓方向配置
+    reverse_opening: bool = Field(default=False, description="开仓方向: False=正向(价差回归), True=反向(价差扩大)")
+    
     # 状态控制
     pause_after_close: bool = Field(default=True, description="平仓后暂停")
     
@@ -82,6 +85,7 @@ class BotUpdate(BaseModel):
     profit_mode: Optional[str] = None
     profit_ratio: Optional[Decimal] = None
     stop_loss_ratio: Optional[Decimal] = None
+    reverse_opening: Optional[bool] = None
     pause_after_close: Optional[bool] = None
     
     @field_validator('profit_mode')
@@ -105,6 +109,7 @@ class BotResponse(BotBase):
     profit_mode: str
     profit_ratio: Decimal
     stop_loss_ratio: Decimal
+    reverse_opening: bool
     pause_after_close: bool
     status: str
     current_cycle: int
@@ -130,6 +135,7 @@ class BotDetailResponse(BotResponse):
     profit_mode: str
     profit_ratio: Decimal
     stop_loss_ratio: Decimal
+    reverse_opening: bool
     pause_after_close: bool
     current_dca_count: int
     last_trade_spread: Optional[Decimal]

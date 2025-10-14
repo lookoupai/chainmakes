@@ -33,6 +33,7 @@ def retry_on_network_error(max_retries: int = 3, base_delay: float = 1.0):
                     ccxt.NetworkError,
                     ccxt.ExchangeNotAvailable,
                     ccxt.RequestTimeout,
+                    ccxt.OnMaintenance,
                 ) as e:
                     last_exception = e
 
@@ -92,15 +93,10 @@ class OKXExchange(BaseExchange):
         }
         
         # 配置代理（如果提供）
-        # CCXT 需要使用 aiohttp 格式的代理配置
         if self.proxy:
-            # 记录代理配置，便于调试
             logger.info(f"使用代理: {self.proxy}")
-            config['aiohttp_proxy'] = self.proxy
-            config['proxies'] = {
-                'http': self.proxy,
-                'https': self.proxy,
-            }
+            # CCXT只能设置一个代理参数，使用httpsProxy（因为OKX API使用HTTPS）
+            config['httpsProxy'] = self.proxy
         
         # 设置模拟盘/真实盘
         if self.is_testnet:
@@ -113,7 +109,7 @@ class OKXExchange(BaseExchange):
         
         return ccxt.okx(config)
     
-    @retry_on_network_error(max_retries=3, base_delay=1.0)
+    @retry_on_network_error(max_retries=4, base_delay=1.5)
     async def get_ticker(self, symbol: str) -> Dict[str, Any]:
         """
         获取OKX行情数据
@@ -138,7 +134,7 @@ class OKXExchange(BaseExchange):
             logger.error(f"获取行情失败 {symbol}: {str(e)}")
             raise
     
-    @retry_on_network_error(max_retries=3, base_delay=1.0)
+    @retry_on_network_error(max_retries=5, base_delay=2.0)
     async def create_market_order(
         self,
         symbol: str,
@@ -156,6 +152,9 @@ class OKXExchange(BaseExchange):
             reduce_only: 是否仅减仓
         """
         try:
+            # 🔥 添加请求前延迟，避免触发频率限制
+            await asyncio.sleep(0.5)
+            
             params = {}
             if reduce_only:
                 params['reduceOnly'] = True

@@ -170,6 +170,13 @@ class BotManager:
             except Exception as e:
                 logger.warning(f"[BotManager] 关闭交易所连接失败: {str(e)}")
             
+            # 停止数据同步服务
+            try:
+                await data_sync_service.stop_sync_for_bot(bot_id)
+                logger.info(f"[BotManager] 已停止机器人 {bot_id} 的数据同步服务")
+            except Exception as e:
+                logger.warning(f"[BotManager] 停止数据同步服务失败: {str(e)}")
+            
             # 从运行列表中移除
             del self.running_bots[bot_id]
             
