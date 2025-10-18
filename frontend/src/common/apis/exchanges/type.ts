@@ -6,6 +6,7 @@ export interface ExchangeAccountCreateRequest {
   api_key: string
   api_secret: string
   passphrase?: string  // OKX需要
+  is_testnet: boolean  // true=测试网/模拟盘, false=真实环境
 }
 
 /** 交易所账户更新请求 */
@@ -14,6 +15,7 @@ export interface ExchangeAccountUpdateRequest {
   api_secret?: string
   passphrase?: string
   is_active?: boolean
+  is_testnet?: boolean
 }
 
 /** 交易所账户响应数据 */
@@ -23,6 +25,7 @@ export interface ExchangeAccountResponse {
   exchange_name: string
   api_key: string  // 前端显示时应脱敏
   is_active: boolean
+  is_testnet: boolean  // true=测试网/模拟盘, false=真实环境
   created_at: string
   updated_at: string
 }

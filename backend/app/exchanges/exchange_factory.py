@@ -4,6 +4,7 @@
 from typing import Optional
 from app.exchanges.base_exchange import BaseExchange
 from app.exchanges.okx_exchange import OKXExchange
+from app.exchanges.binance_exchange import BinanceExchange
 from app.exchanges.mock_exchange import MockExchange
 from app.utils.logger import setup_logger
 from app.config import settings  # 导入配置
@@ -17,8 +18,8 @@ class ExchangeFactory:
     # 支持的交易所映射
     EXCHANGES = {
         'okx': OKXExchange,
+        'binance': BinanceExchange,
         'mock': MockExchange,  # 模拟交易所，用于测试
-        # 'binance': BinanceExchange,  # 待实现
         # 'bybit': BybitExchange,      # 待实现
     }
     
@@ -60,7 +61,7 @@ class ExchangeFactory:
         exchange_class = ExchangeFactory.EXCHANGES[exchange_name]
         logger.info(f"创建{exchange_name}交易所实例")
         
-        # 对于 OKX 交易所，自动从配置读取代理和测试网设置
+        # 对于不同交易所，传入不同的参数
         kwargs = {
             'api_key': api_key,
             'api_secret': api_secret,
@@ -68,7 +69,7 @@ class ExchangeFactory:
         }
         
         if exchange_name == 'okx':
-            # 如果未明确传入，则从配置读取
+            # OKX 需要代理和测试网配置
             if proxy is None:
                 proxy = settings.OKX_PROXY
             if is_testnet is None:
@@ -78,6 +79,16 @@ class ExchangeFactory:
             kwargs['is_testnet'] = is_testnet
             
             logger.info(f"OKX 配置: proxy={'已配置' if proxy else '未配置'}, testnet={is_testnet}")
+        
+        elif exchange_name == 'binance':
+            # Binance 只需要测试网配置，不需要 passphrase
+            if is_testnet is None:
+                is_testnet = True  # 默认使用测试网
+            
+            kwargs['is_testnet'] = is_testnet
+            kwargs.pop('passphrase', None)  # Binance不需要passphrase
+            
+            logger.info(f"Binance 配置: testnet={is_testnet}")
         
         return exchange_class(**kwargs)
     

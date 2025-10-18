@@ -16,6 +16,7 @@ class ExchangeAccountCreate(ExchangeAccountBase):
     api_key: str = Field(..., description="API密钥")
     api_secret: str = Field(..., description="API密钥")
     passphrase: Optional[str] = Field(None, description="API密码(OKX需要)")
+    is_testnet: bool = Field(True, description="是否使用测试网/模拟盘(True=测试网, False=真实环境)")
 
 
 class ExchangeAccountUpdate(BaseModel):
@@ -24,6 +25,7 @@ class ExchangeAccountUpdate(BaseModel):
     api_secret: Optional[str] = Field(None, description="API密钥")
     passphrase: Optional[str] = Field(None, description="API密码")
     is_active: Optional[bool] = Field(None, description="是否启用")
+    is_testnet: Optional[bool] = Field(None, description="是否使用测试网/模拟盘")
 
 
 class ExchangeAccountResponse(ExchangeAccountBase):
@@ -31,6 +33,7 @@ class ExchangeAccountResponse(ExchangeAccountBase):
     id: int
     user_id: int
     is_active: bool
+    is_testnet: bool
     created_at: datetime
     updated_at: datetime
     # 不返回敏感的API密钥信息

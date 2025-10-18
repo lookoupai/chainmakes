@@ -36,6 +36,7 @@ class ExchangeAccount(Base):
     
     # 状态
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_testnet: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)  # True=测试网/模拟盘, False=真实环境
     
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)

@@ -63,7 +63,8 @@ async def create_exchange_account(
         exchange_name=account_data.exchange_name,
         api_key=encrypted_api_key,
         api_secret=encrypted_api_secret,
-        passphrase=encrypted_passphrase
+        passphrase=encrypted_passphrase,
+        is_testnet=account_data.is_testnet
     )
     
     db.add(new_account)
@@ -183,7 +184,8 @@ async def get_exchange_symbols(
             exchange_name=exchange_name,
             api_key=api_key,
             api_secret=api_secret,
-            passphrase=passphrase
+            passphrase=passphrase,
+            is_testnet=account.is_testnet
         )
         
         # 获取交易所支持的市场
@@ -271,6 +273,9 @@ async def update_exchange_account(
     if account_data.is_active is not None:
         account.is_active = account_data.is_active
     
+    if account_data.is_testnet is not None:
+        account.is_testnet = account_data.is_testnet
+    
     await db.commit()
     await db.refresh(account)
     
@@ -320,6 +325,9 @@ async def patch_exchange_account(
     
     if account_data.is_active is not None:
         account.is_active = account_data.is_active
+    
+    if account_data.is_testnet is not None:
+        account.is_testnet = account_data.is_testnet
     
     await db.commit()
     await db.refresh(account)
@@ -371,7 +379,8 @@ async def test_exchange_connection(
             exchange_name=account.exchange_name,
             api_key=api_key,
             api_secret=api_secret,
-            passphrase=passphrase
+            passphrase=passphrase,
+            is_testnet=account.is_testnet
         )
         
         # 测试连接（获取账户余额），设置30秒超时（OKX需要通过代理，耗时较长）

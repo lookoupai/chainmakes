@@ -49,6 +49,14 @@
               <span class="value masked">{{ maskApiKey(account.api_key) }}</span>
             </div>
             <div class="info-item">
+              <span class="label">交易环境:</span>
+              <span class="value">
+                <el-tag :type="account.is_testnet ? 'warning' : 'danger'" size="small">
+                  {{ account.is_testnet ? '测试网/模拟盘' : '真实环境' }}
+                </el-tag>
+              </span>
+            </div>
+            <div class="info-item">
               <span class="label">创建时间:</span>
               <span class="value">{{ formatDate(account.created_at) }}</span>
             </div>
@@ -81,7 +89,7 @@
             style="width: 100%"
           >
             <el-option label="OKX" value="okx" />
-            <el-option label="Binance" value="binance" disabled />
+            <el-option label="Binance" value="binance" />
             <el-option label="Bybit" value="bybit" disabled />
           </el-select>
           <div v-if="isEdit" class="form-tip">交易所类型不可修改</div>
@@ -118,6 +126,20 @@
             show-password
             maxlength="100"
           />
+          <div class="form-tip">Binance交易所不需要Passphrase</div>
+        </el-form-item>
+
+        <el-form-item label="交易环境" prop="is_testnet">
+          <el-radio-group v-model="form.is_testnet">
+            <el-radio :label="true">
+              <el-tag type="warning" size="small">测试网/模拟盘</el-tag>
+              <span style="margin-left: 8px; color: #909399; font-size: 13px;">推荐新手使用，无需真实资金</span>
+            </el-radio>
+            <el-radio :label="false">
+              <el-tag type="danger" size="small">真实环境</el-tag>
+              <span style="margin-left: 8px; color: #909399; font-size: 13px;">使用真实资金交易，请谨慎操作</span>
+            </el-radio>
+          </el-radio-group>
         </el-form-item>
 
         <el-alert
@@ -178,7 +200,8 @@ const form = reactive<ExchangeAccountCreateRequest>({
   exchange_name: 'okx',
   api_key: '',
   api_secret: '',
-  passphrase: ''
+  passphrase: '',
+  is_testnet: true  // 默认使用测试网
 })
 
 const rules = reactive<FormRules>({
@@ -388,7 +411,8 @@ const resetForm = () => {
     exchange_name: 'okx',
     api_key: '',
     api_secret: '',
-    passphrase: ''
+    passphrase: '',
+    is_testnet: true
   })
   formRef.value?.clearValidate()
 }

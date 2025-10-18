@@ -65,7 +65,8 @@ class DataSyncService:
                 exchange_name=exchange_account.exchange_name,
                 api_key=decrypt_key(exchange_account.api_key),
                 api_secret=decrypt_key(exchange_account.api_secret),
-                passphrase=decrypt_key(exchange_account.passphrase) if exchange_account.passphrase else None
+                passphrase=decrypt_key(exchange_account.passphrase) if exchange_account.passphrase else None,
+                is_testnet=exchange_account.is_testnet
             )
             
             # 创建同步任务
